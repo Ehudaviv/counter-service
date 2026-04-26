@@ -25,8 +25,6 @@ concurrency:
 env:
   AWS_REGION: "eu-west-2"
   TF_WORKING_DIR: "./terraform/infra"
-  # Injects the secret as an environment variable for Terraform
-  TF_VAR_db_password: ${{ secrets.TF_VAR_DB_PASSWORD }}
 
 jobs:
   terraform:

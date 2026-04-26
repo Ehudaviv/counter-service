@@ -30,7 +30,6 @@ resource "aws_eks_cluster" "main" {
     endpoint_public_access  = true
   }
 
-  # THIS is the magic block that bypasses the SCP restriction
   upgrade_policy {
     support_type = "STANDARD"
   }
