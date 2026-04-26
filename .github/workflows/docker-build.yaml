@@ -2,34 +2,32 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - '.github/workflows/docker-build.yml'
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
-  id-token: write # Required for OIDC
+  id-token: write
   contents: read
 
 env:
   AWS_REGION: "eu-west-2"
-  # Using the exact ECR URIs from your AWS account
   BACKEND_ECR: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-backend"
   FRONTEND_ECR: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-frontend"
 
 jobs:
   build-and-push:
-    name: Build & Push Images
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::630943284793:role/ehud-counter-service-terraform-ci
@@ -40,14 +38,13 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set Image Tags
-        id: vars
-        # We use the short Git commit SHA for exact traceability
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build and Push Backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          platforms: linux/amd64,linux/arm64  # <--- Build for both!
           push: true
           tags: |
             ${{ env.BACKEND_ECR }}:latest
@@ -57,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          platforms: linux/amd64,linux/arm64  # <--- Build for both!
           push: true
           tags: |
             ${{ env.FRONTEND_ECR }}:latest
