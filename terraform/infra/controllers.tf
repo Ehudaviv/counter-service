@@ -87,3 +87,96 @@ resource "helm_release" "keda" {
     helm_release.alb_controller # <-- The critical fix: Serialize the deployment
   ]
 }
+
+# --- 3. Karpenter Controller ---
+
+data "aws_iam_policy_document" "karpenter_controller" {
+  statement {
+    actions = [
+      "ec2:CreateFleet",
+      "ec2:CreateLaunchTemplate",
+      "ec2:CreateTags",
+      "ec2:DescribeAvailabilityZones",
+      "ec2:DescribeImages",
+      "ec2:DescribeInstances",
+      "ec2:DescribeInstanceTypeOfferings",
+      "ec2:DescribeInstanceTypes",
+      "ec2:DescribeLaunchTemplates",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSpotPriceHistory",
+      "ec2:DescribeSubnets",
+      "ec2:DeleteLaunchTemplate",
+      "ec2:RunInstances",
+      "ec2:TerminateInstances",
+      "ssm:GetParameter",
+      "iam:PassRole",
+      "pricing:GetProducts",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:GetQueueUrl",
+      "sqs:ReceiveMessage"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "karpenter_controller" {
+  name        = "${var.cluster_name}-karpenter-controller"
+  policy      = data.aws_iam_policy_document.karpenter_controller.json
+}
+
+data "aws_iam_policy_document" "karpenter_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:karpenter"]
+    }
+  }
+}
+
+resource "aws_iam_role" "karpenter_controller" {
+  name               = "${var.cluster_name}-karpenter-controller"
+  assume_role_policy = data.aws_iam_policy_document.karpenter_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_controller" {
+  role       = aws_iam_role.karpenter_controller.name
+  policy_arn = aws_iam_policy.karpenter_controller.arn
+}
+
+resource "helm_release" "karpenter" {
+  name             = "karpenter"
+  namespace        = "kube-system"
+  repository       = "oci://public.ecr.aws/karpenter"
+  chart            = "karpenter"
+  version          = "1.0.1"
+
+  set {
+    name  = "serviceAccount.create"
+    value = "true"
+  }
+  set {
+    name  = "serviceAccount.name"
+    value = "karpenter"
+  }
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.karpenter_controller.arn
+  }
+  set {
+    name  = "settings.clusterName"
+    value = aws_eks_cluster.main.name
+  }
+  set {
+    name  = "settings.interruptionQueue"
+    value = "ehud-counter-service-karpenter-interruption"
+  }
+
+  depends_on = [aws_eks_node_group.system_nodes]
+}
