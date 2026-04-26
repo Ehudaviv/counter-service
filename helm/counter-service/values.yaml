@@ -7,7 +7,7 @@ backend:
   replicaCount: 2
   image:
     repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-backend"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
   resources:
     requests:
@@ -21,7 +21,7 @@ frontend:
   replicaCount: 2
   image:
     repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-frontend"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
   resources:
     requests:
