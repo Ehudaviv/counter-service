@@ -1,0 +1,23 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: counter-backend-scaler
+  labels:
+    app: counter-backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: counter-backend
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  triggers:
+    - type: prometheus
+      metadata:
+        # The PromQL query measuring the exact RPS hitting the backend
+        query: 'sum(rate(http_requests_total{endpoint="/api/counter"}[1m]))'
+        # We will deploy Prometheus in Phase 5 to this exact internal DNS address
+        serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        threshold: "{{ .Values.keda.targetRequestsPerSecond }}"
+{{- end }}

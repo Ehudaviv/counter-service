@@ -1,0 +1,39 @@
+global:
+  awsRegion: "eu-west-2"
+  accountId: "630943284793"
+  clusterName: "ehud-counter-service"
+
+backend:
+  replicaCount: 2
+  image:
+    repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-backend"
+    pullPolicy: IfNotPresent
+    tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-frontend"
+    pullPolicy: IfNotPresent
+    tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+keda:
+  enabled: true
+  minReplicaCount: 2
+  maxReplicaCount: 10
+  # KEDA will scale up when we hit 50 requests per second across the pods
+  targetRequestsPerSecond: 50 
