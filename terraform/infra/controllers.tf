@@ -189,6 +189,10 @@ resource "helm_release" "karpenter" {
     name  = "settings.interruptionQueue"
     value = "ehud-counter-service-karpenter-interruption"
   }
+  set {
+    name  = "replicas"
+    value = "1"
+  }
 
   depends_on = [
     aws_eks_node_group.system_nodes,
