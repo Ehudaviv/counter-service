@@ -2,18 +2,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: counter-ingress
-  labels:
-    app: counter-service
   annotations:
-    kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
-    # In a real environment, we would terminate TLS at the ALB like this:
-    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
-    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:...
-    # alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
 spec:
+  ingressClassName: alb 
   rules:
     - http:
         paths:

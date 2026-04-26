@@ -49,10 +49,6 @@ spec:
                 secretKeyRef:
                   name: rds-credentials
                   key: username
-            
-            # --- SECRETS MANAGER INTEGRATION ---
-            # In a full GitOps setup, we would use the External Secrets Operator here.
-            # For this step, we will assume the secret is synced to a K8s native secret.
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
