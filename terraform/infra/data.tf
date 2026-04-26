@@ -1,6 +1,6 @@
 # ECR Repositories with Image Scanning enabled
 resource "aws_ecr_repository" "backend" {
-  name                 = "counter-backend"
+  name                 = "ehud-counter-backend"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -8,7 +8,7 @@ resource "aws_ecr_repository" "backend" {
 }
 
 resource "aws_ecr_repository" "frontend" {
-  name                 = "counter-frontend"
+  name                 = "ehud-counter-frontend"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
