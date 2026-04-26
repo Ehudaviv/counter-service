@@ -262,3 +262,15 @@ resource "helm_release" "external_secrets" {
 
   depends_on = [aws_eks_node_group.system_nodes]
 }
+
+# --- 5. ArgoCD (GitOps Engine) ---
+resource "helm_release" "argocd" {
+  name             = "argo-cd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  namespace        = "argocd"
+  create_namespace = true
+  version          = "6.7.11"
+
+  depends_on = [aws_eks_node_group.system_nodes]
+}
