@@ -45,7 +45,10 @@ spec:
             - name: DB_NAME
               value: "postgres"
             - name: DB_USER
-              value: "postgres"
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: username
             
             # --- SECRETS MANAGER INTEGRATION ---
             # In a full GitOps setup, we would use the External Secrets Operator here.
