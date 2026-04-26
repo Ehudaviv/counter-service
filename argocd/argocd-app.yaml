@@ -1,0 +1,22 @@
+# deployed manually 
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: counter-service-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Ehudaviv/counter-service.git'
+    targetRevision: HEAD
+    path: helm/counter-service
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
