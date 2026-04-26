@@ -199,3 +199,66 @@ resource "helm_release" "karpenter" {
     helm_release.karpenter_crd
   ]
 }
+
+# --- 4. External Secrets Operator (ESO) ---
+
+# 1. Policy: Allow reading only the RDS secret
+data "aws_iam_policy_document" "eso_secrets" {
+  statement {
+    actions   = [
+      "secretsmanager:GetSecretValue", 
+      "secretsmanager:DescribeSecret"
+    ]
+    # Restricting access strictly to this specific secret
+    resources = ["arn:aws:secretsmanager:${var.aws_region}:*:secret:ehud-counter-service-rds-credentials-*"]
+  }
+}
+
+resource "aws_iam_policy" "eso_policy" {
+  name        = "${var.cluster_name}-eso-policy"
+  policy      = data.aws_iam_policy_document.eso_secrets.json
+}
+
+# 2. IRSA: Trust policy linking the K8s Service Account to the IAM Role
+data "aws_iam_policy_document" "eso_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:external-secrets:external-secrets"]
+    }
+  }
+}
+
+resource "aws_iam_role" "eso_role" {
+  name               = "${var.cluster_name}-eso-role"
+  assume_role_policy = data.aws_iam_policy_document.eso_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "eso_attachment" {
+  role       = aws_iam_role.eso_role.name
+  policy_arn = aws_iam_policy.eso_policy.arn
+}
+
+# 3. Deploy ESO via Helm
+resource "helm_release" "external_secrets" {
+  name             = "external-secrets"
+  namespace        = "external-secrets"
+  create_namespace = true
+  repository       = "https://charts.external-secrets.io"
+  chart            = "external-secrets"
+  version          = "0.9.13"
+
+  # Attach the IAM role to the ESO service account
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.eso_role.arn
+  }
+
+  depends_on = [aws_eks_node_group.system_nodes]
+}
