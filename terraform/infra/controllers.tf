@@ -150,6 +150,18 @@ resource "aws_iam_role_policy_attachment" "karpenter_controller" {
   policy_arn = aws_iam_policy.karpenter_controller.arn
 }
 
+# --- 3a. Karpenter CRDs ---
+
+resource "helm_release" "karpenter_crd" {
+  name             = "karpenter-crd"
+  namespace        = "kube-system"
+  repository       = "oci://public.ecr.aws/karpenter"
+  chart            = "karpenter-crd"
+  version          = "1.0.1"
+
+  depends_on = [aws_eks_node_group.system_nodes]
+}
+
 resource "helm_release" "karpenter" {
   name             = "karpenter"
   namespace        = "kube-system"
@@ -178,5 +190,8 @@ resource "helm_release" "karpenter" {
     value = "ehud-counter-service-karpenter-interruption"
   }
 
-  depends_on = [aws_eks_node_group.system_nodes]
+  depends_on = [
+    aws_eks_node_group.system_nodes,
+    helm_release.karpenter_crd
+  ]
 }
