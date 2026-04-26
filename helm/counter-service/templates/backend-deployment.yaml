@@ -55,7 +55,8 @@ spec:
                 secretKeyRef:
                   name: rds-credentials
                   key: password
-
+            - name: DB_SSL
+              value: "require"
           resources:
             requests:
               cpu: {{ .Values.backend.resources.requests.cpu }}
