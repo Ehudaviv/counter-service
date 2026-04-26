@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <title>SRE Counter Hub</title>
+    <style>
+      /* --- Unique SRE/Terminal Aesthetic --- */
+      :root {
+        --bg-color: #121212;
+        --card-color: #1e1e1e;
+        --text-primary: #e0e0e0;
+        --accent-color: #00e676; /* SRE Green */
+        --error-color: #ff5252;
+        --border-color: #333;
+      }
+
+      body { 
+        font-family: 'Roboto Mono', 'Courier New', monospace; 
+        background-color: var(--bg-color); 
+        color: var(--text-primary);
+        display:flex; 
+        align-items:center; 
+        justify-content:center; 
+        height:100vh; 
+        margin:0; 
+      }
+
+      .dashboard-card { 
+        background-color: var(--card-color); 
+        border: 1px solid var(--border-color);
+        border-radius: 4px; 
+        padding: 40px; 
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5); 
+        width: 380px; 
+        text-align: center; 
+      }
+
+      h1 { 
+        margin-top: 0; 
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+      }
+
+      .counter-display {
+        margin: 30px 0;
+        padding: 20px;
+        background-color: rgba(0,0,0,0.3);
+        border-radius: 4px;
+      }
+
+      .label {
+        font-size: 0.8rem;
+        color: #888;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      #value { 
+        font-size: 4rem; 
+        font-weight: bold;
+        color: var(--accent-color); 
+        text-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
+      }
+
+      button { 
+        border: 1px solid var(--accent-color); 
+        background: transparent; 
+        color: var(--accent-color); 
+        padding: 12px 18px; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        width: 100%; 
+        font-size: 1rem; 
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+      }
+
+      button:hover { 
+        background-color: var(--accent-color); 
+        color: var(--bg-color);
+        box-shadow: 0 0 15px rgba(0, 230, 118, 0.7);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      #error { 
+        color: var(--error-color); 
+        min-height: 1.2rem; 
+        margin-top: 15px; 
+        font-size: 0.85rem; 
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-card">
+      <h1>Counter Service</h1>
+      <div class="counter-display">
+        <span class="label">Current Request Count</span>
+        <div id="value">-</div>
+      </div>
+      <button id="increment">Execute_Increment.sh</button>
+      <div id="error"></div>
+    </div>
+
+    <script>
+      const valueEl = document.getElementById('value');
+      const errorEl = document.getElementById('error');
+
+      async function refresh() {
+        try {
+          errorEl.textContent = '';
+          const res = await fetch('/api/counter');
+          if (!res.ok) throw new Error(`GET_ERR: ${res.status}`);
+          const data = await res.json();
+          valueEl.textContent = data.value;
+        } catch (e) {
+          errorEl.textContent = e.message;
+        }
+      }
+
+      document.getElementById('increment').addEventListener('click', async () => {
+        try {
+          errorEl.textContent = '';
+          const res = await fetch('/api/counter', { method: 'POST' });
+          if (!res.ok) throw new Error(`POST_ERR: ${res.status}`);
+          const data = await res.json();
+          valueEl.textContent = data.value;
+        } catch (e) {
+          errorEl.textContent = e.message;
+        }
+      });
+
+      refresh();
+      // Keep the polling - this spikes RPS to trigger KEDA scaling
+      setInterval(refresh, 1000);
+    </script>
+  </body>
+</html>
