@@ -4,6 +4,7 @@ global:
   clusterName: "ehud-counter-service"
 
 backend:
+  dbHost: "ehud-counter-service-db.c360efet38pa.eu-west-2.rds.amazonaws.com"
   replicaCount: 2
   image:
     repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-backend"

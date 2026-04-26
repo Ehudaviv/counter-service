@@ -39,7 +39,7 @@ spec:
           # Injecting the Database configuration
           env:
             - name: DB_HOST
-              value: "{{ .Values.global.clusterName }}-db.{{ .Values.global.awsRegion }}.rds.amazonaws.com"
+              value: {{ .Values.backend.dbHost | quote }}
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
