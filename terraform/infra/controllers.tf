@@ -59,6 +59,15 @@ resource "helm_release" "alb_controller" {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.alb_controller.arn
   }
+  # Explicitly define VPC and Region to prevent discovery timeouts
+  set {
+    name  = "vpcId"
+    value = module.vpc.vpc_id
+  }
+  set {
+    name  = "region"
+    value = var.aws_region
+  }
   
   depends_on = [aws_eks_node_group.system_nodes]
 }
@@ -73,5 +82,8 @@ resource "helm_release" "keda" {
   create_namespace = true
   version          = "2.13.0"
 
-  depends_on = [aws_eks_node_group.system_nodes]
+  depends_on = [
+    aws_eks_node_group.system_nodes,
+    helm_release.alb_controller # <-- The critical fix: Serialize the deployment
+  ]
 }
