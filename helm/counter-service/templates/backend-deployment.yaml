@@ -4,6 +4,8 @@ metadata:
   name: counter-backend
   labels:
     app: counter-backend
+  annotations:
+    instrumentation.opentelemetry.io/inject-sdk: "false"
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
