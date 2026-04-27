@@ -300,17 +300,5 @@ resource "helm_release" "kube_prometheus_stack" {
     EOT
   ]
 
-  # Setting a static, simple password for the assessment
-  set {
-    name  = "grafana.adminPassword"
-    value = "admin"
-  }
-
-  # Keeps the footprint a bit smaller for our t4g.medium nodes
-  set {
-    name  = "prometheus.prometheusSpec.scrapeInterval"
-    value = "30s"
-  }
-
   depends_on = [aws_eks_node_group.system_nodes]
 }
