@@ -11,7 +11,7 @@ resource "aws_eks_node_group" "system_nodes" {
     min_size     = 2
   }
 
-  instance_types = ["t4g.medium"]
+  instance_types = ["t4g.large"]
   # Updated to Amazon Linux 2023 to support EKS 1.34
   ami_type       = "AL2023_ARM_64_STANDARD"
 
