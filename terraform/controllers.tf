@@ -318,25 +318,3 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   
   depends_on = [aws_iam_role_policy_attachment.node_cloudwatch]
 }
-
-# Lookup for the Grafana service address
-data "kubernetes_service_v1" "grafana" {
-  metadata {
-    name      = "kube-prometheus-stack-grafana"
-    namespace = "monitoring"
-  }
-}
-
-# Lookup for the ArgoCD service address
-data "kubernetes_service_v1" "argocd" {
-  metadata {
-    name      = "argocd-server"
-    namespace = "argocd"
-  }
-}
-
-data "aws_lb" "counter" {
-  tags = {
-    "elbv2.k8s.aws/cluster" = var.cluster_name
-  }
-}
