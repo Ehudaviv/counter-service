@@ -283,6 +283,22 @@ resource "helm_release" "kube_prometheus_stack" {
   namespace        = "monitoring"
   create_namespace = true
   version          = "58.2.2"
+  values = [
+    <<-EOT
+    grafana:
+      adminPassword: "admin"
+      ingress:
+        enabled: true
+        ingressClassName: alb
+        annotations:
+          alb.ingress.kubernetes.io/scheme: internet-facing
+          alb.ingress.kubernetes.io/target-type: ip
+          alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    prometheus:
+      prometheusSpec:
+        scrapeInterval: 30s
+    EOT
+  ]
 
   # Setting a static, simple password for the assessment
   set {
