@@ -12,6 +12,21 @@ spec:
     name: counter-backend
   minReplicaCount: {{ .Values.keda.minReplicaCount }}
   maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0 
+          policies:
+            - type: Pods
+              value: 10
+              periodSeconds: 15
+        scaleDown:
+          stabilizationWindowSeconds: 60 
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
   triggers:
     - type: prometheus
       metadata:
