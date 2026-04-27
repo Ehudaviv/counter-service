@@ -63,6 +63,10 @@ spec:
                   key: password
             - name: DB_SSL
               value: "require"
+            - name: OTEL_ENABLED
+              value: "true"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://cloudwatch-agent.amazon-cloudwatch.svc.cluster.local:4318"
           resources:
             requests:
               cpu: {{ .Values.backend.resources.requests.cpu }}
