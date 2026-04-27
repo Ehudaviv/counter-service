@@ -15,9 +15,7 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        # The PromQL query measuring the exact RPS hitting the backend
-        query: 'sum(rate(http_requests_total{endpoint="/api/counter"}[1m]))'
-        # We will deploy Prometheus in Phase 5 to this exact internal DNS address
+        query: 'sum(rate(http_requests_total{exported_endpoint="/api/counter"}[1m]))'
         serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
         threshold: "{{ .Values.keda.targetRequestsPerSecond }}"
 {{- end }}
