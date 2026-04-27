@@ -1,4 +1,4 @@
-# docker-compose.yml, This file is used to run the application locally.
+# docker-compose.yaml, This file is used to run the application locally.
 
 version: '3.8'
 

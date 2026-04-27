@@ -302,3 +302,10 @@ resource "helm_release" "kube_prometheus_stack" {
 
   depends_on = [aws_eks_node_group.system_nodes]
 }
+
+resource "aws_eks_addon" "metrics_server" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "metrics-server"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
