@@ -36,6 +36,21 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
   policy_arn = aws_iam_policy.alb_controller.arn
 }
 
+resource "aws_iam_role_policy" "alb_listener_patch" {
+  name   = "alb-listener-patch"
+  role   = aws_iam_role.alb_controller.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "elasticloadbalancing:DescribeListenerAttributes"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # Deploy ALB Controller via Helm
 resource "helm_release" "alb_controller" {
   name       = "aws-load-balancer-controller"
@@ -273,6 +288,12 @@ resource "helm_release" "argocd" {
   version          = "6.7.11"
 
   depends_on = [aws_eks_node_group.system_nodes]
+
+  set {
+    name  = "server.service.type"
+    value = "LoadBalancer"
+  }
+
 }
 
 # --- 6. Observability (Prometheus & Grafana) ---
@@ -286,6 +307,7 @@ resource "helm_release" "kube_prometheus_stack" {
   values = [
     <<-EOT
     grafana:
+      service: LoadBalancer
       adminPassword: "admin"
       ingress:
         enabled: true
