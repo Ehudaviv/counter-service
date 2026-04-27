@@ -319,28 +319,28 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   depends_on = [aws_iam_role_policy_attachment.node_cloudwatch]
 }
 
-# Lookup for the Grafana service address
-data "kubernetes_service" "grafana" {
-  metadata {
-    name      = "kube-prometheus-stack-grafana"
-    namespace = "monitoring"
-  }
-  # Wait for the Helm chart to finish before trying to read the service
-  depends_on = [helm_release.prometheus_stack]
-}
+# # Lookup for the Grafana service address
+# data "kubernetes_service" "grafana" {
+#   metadata {
+#     name      = "kube-prometheus-stack-grafana"
+#     namespace = "monitoring"
+#   }
+#   # Wait for the Helm chart to finish before trying to read the service
+#   depends_on = [helm_release.prometheus_stack]
+# }
 
-# Lookup for the ArgoCD service address
-data "kubernetes_service" "argocd" {
-  metadata {
-    name      = "argocd-server"
-    namespace = "argocd"
-  }
-  # Wait for the ArgoCD installation to finish
-  depends_on = [helm_release.argocd] 
-}
+# # Lookup for the ArgoCD service address
+# data "kubernetes_service" "argocd" {
+#   metadata {
+#     name      = "argocd-server"
+#     namespace = "argocd"
+#   }
+#   # Wait for the ArgoCD installation to finish
+#   depends_on = [helm_release.argocd] 
+# }
 
-data "aws_lb" "counter" {
-  tags = {
-    "elbv2.k8s.aws/cluster" = var.cluster_name
-  }
-}
+# data "aws_lb" "counter" {
+#   tags = {
+#     "elbv2.k8s.aws/cluster" = var.cluster_name
+#   }
+# }
