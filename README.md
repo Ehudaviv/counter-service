@@ -164,7 +164,7 @@ Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-st
 ### 3. Argo CD (GitOps Dashboard)
 Argo CD is exposed publicly via an AWS Load Balancer. Extract the public hostname using:
 ```bash
-    kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+    kubectl get svc argo-cd-argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ```
 Next, extract the auto-generated admin password:
 ```bash
