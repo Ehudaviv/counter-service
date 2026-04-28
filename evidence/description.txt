@@ -1,0 +1,15 @@
+# Evidence Directory 
+
+This directory contains visual proof of the operational capabilities, infrastructure state, and observability integrations of the Counter Service cluster.
+
+* **01-ci-build-success.png**: Demonstrates the GitHub Actions CI pipeline successfully building and pushing multi-architecture Docker images (ARM64) to Amazon ECR.
+* **02-cd-gitops-sync.png**: Shows ArgoCD actively managing the cluster state, maintaining a healthy and synced GitOps deployment pipeline.
+* **03-app-network-resources.png**: Validates the core Kubernetes network topology, showing the running pods, ClusterIP services, AWS ALB Ingress, and the initial HPA state.
+* **04-resilience-extras.png**: Highlights the production-readiness of the pod specifications, including strict resource requests/limits, liveness/readiness probes, and topology spread constraints.
+* **05-persistence-proof.png**: Proves state persistence by showing the database retaining the counter value even after the backend pods are manually deleted and recreated.
+* **06-KEDA-Scaling-Up.png**: Demonstrates the event-driven autoscaler (KEDA) intercepting custom Prometheus metrics to successfully scale the backend deployment in response to simulated load.
+* **07-karpenter-scaling.png**: Captures Karpenter dynamically provisioning a new EC2 node (JIT provisioning) in response to unschedulable pods caused by a resource bottleneck.
+* **08-eso-secrets.png**: Validates the External Secrets Operator securely fetching the RDS database credentials from AWS Secrets Manager and injecting them as native Kubernetes secrets.
+* **09-xray-service-map.png**: Displays the AWS X-Ray service map, proving OpenTelemetry auto-instrumentation is actively capturing distributed traces between the Python backend and the PostgreSQL database.
+* **10-grafana-metrics.png**: Shows the Grafana dashboard querying Prometheus, confirming the successful scraping and visualization of cluster compute metrics.
+* **11-cloudwatch-logs.png**: Demonstrates centralized log aggregation via CloudWatch Logs Insights, proving pod logs are persistently stored and actively searchable.
