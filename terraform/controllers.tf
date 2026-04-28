@@ -308,7 +308,8 @@ resource "helm_release" "kube_prometheus_stack" {
   values = [
     <<-EOT
     grafana:
-      service: LoadBalancer
+      service:
+        type: LoadBalancer
       adminPassword: "admin"
       ingress:
         enabled: true
