@@ -13,10 +13,10 @@ spec:
     path: helm/counter-service
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: default
+    namespace: prod
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=true 
