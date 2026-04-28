@@ -12,8 +12,8 @@ backend:
     tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 500m
+      memory: 256Mi
     limits:
       cpu: 500m
       memory: 256Mi
