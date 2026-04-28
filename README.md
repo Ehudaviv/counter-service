@@ -157,7 +157,7 @@ Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-st
 ```bash
     kubectl get svc kube-prometheus-stack-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ```
-* **URL:** https://'your-grafana-loadbalancer-url'
+* **URL:** http://'your-grafana-loadbalancer-url'
 * **Username:** admin
 * **Password:** admin *(Configured via Terraform)*
 
