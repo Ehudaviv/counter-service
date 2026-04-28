@@ -9,7 +9,7 @@ backend:
   image:
     repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-backend"
     pullPolicy: Always
-    tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
+    tag: "e5eba7f"
   resources:
     requests:
       cpu: 100m
@@ -23,7 +23,7 @@ frontend:
   image:
     repository: "630943284793.dkr.ecr.eu-west-2.amazonaws.com/ehud-counter-frontend"
     pullPolicy: Always
-    tag: "latest" # This will be dynamically overridden by ArgoCD/GitHub Actions
+    tag: "e5eba7f"
   resources:
     requests:
       cpu: 50m
