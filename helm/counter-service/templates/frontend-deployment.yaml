@@ -18,6 +18,8 @@ spec:
         - name: frontend
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          securityContext:
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 8080
               name: http
@@ -43,3 +45,9 @@ spec:
             limits:
               cpu: {{ .Values.frontend.resources.limits.cpu }}
               memory: {{ .Values.frontend.resources.limits.memory }}
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
