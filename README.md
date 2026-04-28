@@ -96,6 +96,51 @@ Full-stack observability is integrated by default, capturing the "Three Pillars"
 * **Traces:** The Python backend is instrumented with OpenTelemetry. Traces are exported to the AWS CloudWatch agent and visualized in **AWS X-Ray**, mapping the exact latency between the Python application and the RDS PostgreSQL database.
 * **Logs:** FluentBit aggregates all container stdout/stderr streams and ships them to centralized CloudWatch Log Groups for persistent querying via Logs Insights.
 
+## Provisioning the Cluster
+
+This section outlines the exact steps taken to provision the original environment and serves as a reproducible guide for deploying this architecture into a new AWS account.
+
+### Step 1: Pre-flight Configuration
+Before provisioning the infrastructure, a new user must fork this repository and update the hardcoded AWS Account IDs to match their own environment.
+
+1. **Fork the repository** to your own GitHub account.
+2. **Update the Bootstrap Script:** Open `scripts/bootstrap.sh` and update the `VCS_ORG` variable to match your GitHub username or organization.
+3. **Update GitHub Actions:** In both `.github/workflows/terraform-infra.yaml` and `.github/workflows/docker-build.yaml`, locate the `role-to-assume` ARN and replace `630943284793` with your target AWS Account ID.
+
+### Step 2: Bootstrap AWS Foundations (One-Time Execution)
+To maintain security best practices, this project relies on temporary OIDC credentials rather than static IAM access keys. A foundational bootstrap script must be run locally to prepare the AWS account.
+
+Execute the following command using an AWS CLI profile with administrative privileges:
+./scripts/bootstrap.sh
+
+**What this script does:**
+* Provisions an S3 Bucket (`ehud-counter-service-tfstate`) and a DynamoDB table for secure, locked Terraform remote state management.
+* Registers GitHub as an OpenID Connect (OIDC) identity provider in the AWS account.
+* Creates the `ehud-counter-service-terraform-ci` IAM role, granting the GitHub Actions pipeline permissions to execute Terraform.
+* Creates the `ehud-counter-service-github-actions-role` IAM role, granting the pipeline permissions to push built Docker images to Amazon ECR.
+* Manually provisions the EC2 Spot Instance Service-Linked Role required for Karpenter to function.
+
+### Step 3: Infrastructure Provisioning via CI/CD
+Once the foundational roles are established, the entire AWS infrastructure is deployed declaratively via GitHub Actions.
+
+1. Navigate to the **Actions** tab in your GitHub repository.
+2. Select the **Infrastructure Provisioning (Infra Layer)** workflow.
+3. Click **Run workflow**, leaving the action set to `apply`.
+
+**What this workflow does:**
+* Authenticates to AWS securely via OIDC.
+* Executes `terraform apply` to provision the VPC, Subnets, EKS Control Plane, managed NodeGroups, IAM roles for service accounts (IRSA), and RDS PostgreSQL database.
+* Installs core cluster controllers via Helm (AWS Load Balancer Controller, Karpenter, External Secrets Operator, and Kube-Prometheus-Stack).
+* Automatically applies the baseline Kubernetes manifests (`manifests/karpenter-pool.yaml` and `manifests/argocd-app.yaml`) to the new cluster.
+
+### Step 4: Application Deployment (GitOps)
+After the infrastructure pipeline completes, the cluster is fully operational. Argo CD is actively running inside the cluster and monitoring the repository for state changes. 
+
+To deploy the application:
+1. Navigate to the **Actions** tab and manually trigger the **Docker Build & Push** workflow (or simply push a new commit to the `main` branch).
+2. The pipeline will build the multi-architecture images, push them to the newly created ECR repositories, and commit the updated image tags back to the Helm `values.yaml` file.
+3. Argo CD will immediately detect the commit and synchronize the cluster state, deploying the backend, frontend, KEDA scaled objects, and External Secret stores without any manual intervention.
+
 ## Evidence Directory
 
 The `evidence/` directory contains visual proof of the operational capabilities, infrastructure state, and observability integrations of the Counter Service cluster.
