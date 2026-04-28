@@ -17,14 +17,13 @@ User Request
 | Component | Technology Choice | Highlight |
 | :--- | :--- | :--- |
 | **Cluster Management** | AWS EKS (v1.34) | Managed control plane with Graviton (ARM64) support. |
-| **Node Autoscaling** | **Karpenter** | JIT node provisioning, replacing standard Cluster Autoscaler for faster, constraint-based scaling. |
-| **Pod Autoscaling** | **KEDA** | Event-driven scaling based on custom Prometheus HTTP Request metrics (RPS), bypassing standard CPU-based HPA. |
+| **Node Autoscaling** | Karpenter | JIT node provisioning, replacing standard Cluster Autoscaler for faster, constraint-based scaling. |
+| **Pod Autoscaling** | KEDA | Event-driven scaling based on custom Prometheus HTTP Request metrics (RPS), bypassing standard CPU-based HPA. |
 | **GitOps Delivery** | Argo CD + Helm | Declarative, self-healing continuous deployment directly from Git source. |
-| **Secrets Management** | **External Secrets Operator** | Securely syncs RDS credentials from AWS Secrets Manager into native Kubernetes Secrets. |
+| **Secrets Management** | External Secrets Operator | Securely syncs RDS credentials from AWS Secrets Manager into native Kubernetes Secrets. |
 | **Infrastructure** | Terraform | Modular IaC defining VPC, EKS, NodeGroups, IAM OIDC, and Karpenter profiles. |
 | **CI Pipeline** | GitHub Actions | Builds and pushes multi-architecture (AMD64/ARM64) images to ECR. |
 | **Observability** | Prometheus, Grafana, OpenTelemetry | Full metric scraping, CloudWatch log aggregation, and X-Ray distributed tracing. |
-```
 
 ## Repository Structure
 
@@ -65,7 +64,7 @@ Infrastructure is deployed via GitHub Actions using OpenID Connect (OIDC) for pa
 
 ### 2. Continuous Integration (CI)
 On code changes to the `main` branch, the `.github/workflows/docker-build.yaml` pipeline triggers automatically:
-1.  Builds multi-architecture Docker images (`linux/arm64`).
+1.  Builds multi-architecture Docker images (`linux/amd64`, `linux/arm64`).
 2.  Pushes images to Amazon ECR.
 3.  Updates the Helm `values.yaml` file with the new image tags and commits the change.
 

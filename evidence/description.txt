@@ -2,7 +2,7 @@
 
 This directory contains visual proof of the operational capabilities, infrastructure state, and observability integrations of the Counter Service cluster.
 
-* **01-ci-build-success.png**: Demonstrates the GitHub Actions CI pipeline successfully building and pushing multi-architecture Docker images (ARM64) to Amazon ECR.
+* **01-ci-build-success.png**: Demonstrates the GitHub Actions CI pipeline successfully building and pushing multi-architecture Docker images (ARM64, AMD64) to Amazon ECR.
 * **02-cd-gitops-sync.png**: Shows ArgoCD actively managing the cluster state, maintaining a healthy and synced GitOps deployment pipeline.
 * **03-app-network-resources.png**: Validates the core Kubernetes network topology, showing the running pods, ClusterIP services, AWS ALB Ingress, and the initial HPA state.
 * **04-resilience-extras.png**: Highlights the production-readiness of the pod specifications, including strict resource requests/limits, liveness/readiness probes, and topology spread constraints.
