@@ -111,7 +111,7 @@ Before provisioning the infrastructure, a new user must fork this repository and
 To maintain security best practices, this project relies on temporary OIDC credentials rather than static IAM access keys. A foundational bootstrap script must be run locally to prepare the AWS account.
 
 Execute the following command using an AWS CLI profile with administrative privileges:
-./scripts/bootstrap.sh
+`./scripts/bootstrap.sh`
 
 **What this script does:**
 * Provisions an S3 Bucket (`ehud-counter-service-tfstate`) and a DynamoDB table for secure, locked Terraform remote state management.
@@ -140,6 +140,50 @@ To deploy the application:
 1. Navigate to the **Actions** tab and manually trigger the **Docker Build & Push** workflow (or simply push a new commit to the `main` branch).
 2. The pipeline will build the multi-architecture images, push them to the newly created ECR repositories, and commit the updated image tags back to the Helm `values.yaml` file.
 3. Argo CD will immediately detect the commit and synchronize the cluster state, deploying the backend, frontend, KEDA scaled objects, and External Secret stores without any manual intervention.
+
+## Accessing the Services
+
+Once the cluster is provisioned and Argo CD has synchronized the applications, you can extract the relevant URLs and access points using the commands below.
+
+### 1. Counter Application (Frontend & API)
+The application is exposed via an AWS Application Load Balancer. Run the following command in your terminal to extract the public hostname:
+```bash
+    `kubectl get ingress counter-ingress -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+```
+### 2. Grafana (Metrics & Dashboards)
+Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-stack. Extract the URL using:
+```bash
+    kubectl get svc kube-prometheus-stack-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+```
+* **Username:** admin
+* **Password:** admin *(Configured via Terraform)*
+
+### 3. Argo CD (GitOps Dashboard)
+Argo CD is exposed publicly via an AWS Load Balancer. Extract the public hostname using:
+```bash
+    kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+```
+Next, extract the auto-generated admin password:
+```bash
+    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+* **URL:** https://<your-argocd-loadbalancer-url>
+* **Username:** admin
+
+### 4. AWS CloudWatch (Logs)
+All standard output and error logs from the containers are aggregated via the CloudWatch Observability Add-on (FluentBit).
+
+1. Log in to the **AWS Management Console**.
+2. Navigate to **CloudWatch** -> **Logs** -> **Log groups**.
+3. Select the log group: `/aws/containerinsights/ehud-counter-service/application`
+4. Use **Logs Insights** to query and filter specific pod logs.
+
+### 5. AWS X-Ray (Distributed Traces)
+OpenTelemetry automatically instruments the Python backend to track requests to the PostgreSQL database.
+
+1. Log in to the **AWS Management Console**.
+2. Navigate to **CloudWatch** -> **X-Ray traces** -> **Service map**.
+3. View the visual node graph mapping the request paths and latency between the application and the RDS instance.
 
 ## Evidence Directory
 
