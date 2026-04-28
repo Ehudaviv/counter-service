@@ -155,6 +155,7 @@ Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-st
 ```bash
     kubectl get svc kube-prometheus-stack-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ```
+* **URL:** https://'your-grafana-loadbalancer-url'
 * **Username:** admin
 * **Password:** admin *(Configured via Terraform)*
 
@@ -167,7 +168,7 @@ Next, extract the auto-generated admin password:
 ```bash
     kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
-* **URL:** https://<your-argocd-loadbalancer-url>
+* **URL:** https://'your-argocd-loadbalancer-url'
 * **Username:** admin
 
 ### 4. AWS CloudWatch (Logs)
@@ -185,18 +186,33 @@ OpenTelemetry automatically instruments the Python backend to track requests to 
 2. Navigate to **CloudWatch** -> **X-Ray traces** -> **Service map**.
 3. View the visual node graph mapping the request paths and latency between the application and the RDS instance.
 
-## Evidence Directory
+## HA, Scaling, Persistence - Choices and Trade-offs
 
-The `evidence/` directory contains visual proof of the operational capabilities, infrastructure state, and observability integrations of the Counter Service cluster.
+### High Availability
 
-* **`01-ci-build-success.png`**: Demonstrates the GitHub Actions CI pipeline successfully building and pushing multi-architecture Docker images to Amazon ECR.
-* **`02-cd-gitops-sync.png`**: Shows ArgoCD actively managing the cluster state, maintaining a healthy and synced GitOps deployment pipeline.
-* **`03-app-network-resources.png`**: Validates the core Kubernetes network topology, showing the running pods, ClusterIP services, AWS ALB Ingress, and the initial KEDA state.
-* **`04-resilience-extras.png`**: Highlights the production-readiness of the pod specifications, including strict resource requests/limits, liveness/readiness probes, and topology spread constraints.
-* **`05-persistence-proof.png`**: Proves state persistence by showing the database retaining the counter value even after the backend pods are manually deleted and recreated.
-* **`06-KEDA-Scaling-Up.png`**: Demonstrates the event-driven autoscaler (KEDA) intercepting custom Prometheus metrics to successfully scale the backend deployment in response to simulated load.
-* **`07-karpenter-scaling.png`**: Captures Karpenter dynamically provisioning a new EC2 node (JIT provisioning) in response to unschedulable pods caused by a resource bottleneck.
-* **`08-eso-secrets.png`**: Validates the External Secrets Operator securely fetching the RDS database credentials from AWS Secrets Manager and injecting them as native Kubernetes secrets.
-* **`09-xray-service-map.png`**: Displays the AWS X-Ray service map, proving OpenTelemetry auto-instrumentation is actively capturing distributed traces between the Python backend and the PostgreSQL database.
-* **`10-grafana-metrics.png`**: Shows the Grafana dashboard querying Prometheus, confirming the successful scraping and visualization of cluster compute metrics.
-* **`11-cloudwatch-logs.png`**: Demonstrates centralized log aggregation via CloudWatch Logs Insights, proving pod logs are persistently stored and actively searchable.
+| Mechanism | Implementation & Trade-off |
+| :--- | :--- |
+| **Multi-AZ Compute** | Karpenter is configured to provision nodes across `eu-west-2a` and `eu-west-2b`. **Trade-off:** Increases cross-AZ data transfer costs but ensures the cluster survives a single datacenter failure. |
+| **Pod Distribution** | Deployments utilize `topologySpreadConstraints` to force pods onto different physical nodes and AZs. **Trade-off:** May leave small resource gaps on nodes, slightly reducing bin-packing efficiency in favor of resilience. |
+| **Database Redundancy** | The RDS PostgreSQL instance is provisioned outside the cluster. **Trade-off:** Currently configured as Single-AZ to optimize cloud costs for this demonstration. In a true production tier, enabling `multi_az = true` in Terraform would add a standby replica to prevent the database from being a single point of failure (SPoF). |
+
+### Auto-scaling
+
+This architecture intentionally replaces native Kubernetes scaling tools with advanced, event-driven alternatives to optimize reaction time and cost.
+
+| Approach | Choice vs. Native | Trade-off & Justification |
+| :--- | :--- | :--- |
+| **Node Scaling** | **Karpenter** (Chosen) vs. Cluster Autoscaler | **Justification:** Cluster Autoscaler relies on rigid, pre-defined Auto Scaling Groups (ASGs). Karpenter directly provisions raw EC2 compute Just-In-Time based on pod requirements. **Trade-off:** Requires more complex initial IAM and networking setup (SQS queues, Spot instance roles) but dramatically reduces scaling latency from minutes to seconds. |
+| **Pod Scaling** | **KEDA** (Chosen) vs. HPA | **Justification:** Native HPA scales reactively based on CPU/Memory exhaustion. KEDA proactively scales based on HTTP request traffic (RPS) directly from Prometheus. **Trade-off:** Adds operational overhead (managing KEDA controllers and ServiceMonitors) but ensures pods scale up *before* CPU bottlenecks degrade the user experience. |
+
+### Persistence & State
+
+**Chosen approach: AWS RDS PostgreSQL**
+
+The counter application requires absolute state consistency. A relational database was chosen to handle atomic increments (`UPDATE ... RETURNING value`) to prevent race conditions when multiple backend replicas handle requests simultaneously.
+
+| Alternative | Pros | Cons (Why it was rejected) |
+| :--- | :--- | :--- |
+| **In-Cluster StatefulSet (PVC)** | Cheaper, contained entirely within Kubernetes. | Requires complex volume management, backup strategies, and node-affinity rules. If the cluster fails, data recovery is difficult. |
+| **Redis / In-Memory** | Exceptionally fast read/write speeds. | Ephemeral by default. Requires complex AOF/RDB configuration for durability and another controller to operate within the cluster. |
+| **AWS RDS (Chosen)** | Fully managed, decoupled from compute, automated backups, out-of-the-box encryption at rest. | Network latency is marginally higher than in-cluster storage, and carries a base hourly cloud cost regardless of usage. |
