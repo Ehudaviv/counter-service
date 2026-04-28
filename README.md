@@ -83,10 +83,12 @@ Standard Horizontal Pod Autoscalers (HPA) scale purely on CPU/Memory utilization
 ### Just-In-Time Node Provisioning (Karpenter)
 Standard Kubernetes NodeGroups are static and slow to scale. This project utilizes **Karpenter**. When KEDA requests additional pods during a load event, the default nodes may become congested. Karpenter detects `Unschedulable` pods, evaluates the resource requests, and provisions a right-sized EC2 spot instance in seconds to absorb the load.
 
-### Zero-Downtime Resilience
+### Zero-Downtime Resilience & Security
 * **Topology Spread Constraints:** Pods are distributed across multiple Availability Zones to survive datacenter degradation.
+* **Pod Disruption Budgets (PDBs):** Enforce a `minAvailable: 1` rule, guaranteeing that Kubernetes will never drain a node if it would cause complete downtime during voluntary maintenance (e.g., Karpenter spot instance rotation).
 * **Probes:** Strict Liveness and Readiness probes ensure traffic is only routed to healthy application states.
 * **Graceful Termination:** Configured `terminationGracePeriodSeconds` allows in-flight requests to complete before pods are rotated.
+* **Read-Only Root Filesystems:** Containers are enforced with `readOnlyRootFilesystem: true`, mounting ephemeral `emptyDir` volumes only where necessary (`/tmp`). This protects against malicious script execution and unauthorized filesystem mutations if a container is compromised.
 
 ## Observability
 
@@ -148,7 +150,7 @@ Once the cluster is provisioned and Argo CD has synchronized the applications, y
 ### 1. Counter Application (Frontend & API)
 The application is exposed via an AWS Application Load Balancer. Run the following command in your terminal to extract the public hostname:
 ```bash
-    `kubectl get ingress counter-ingress -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+    `kubectl get ingress counter-ingress -n prod -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
 ```
 ### 2. Grafana (Metrics & Dashboards)
 Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-stack. Extract the URL using:
