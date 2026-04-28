@@ -125,12 +125,17 @@ data "aws_iam_policy_document" "karpenter_controller" {
       "ec2:TerminateInstances",
       "ssm:GetParameter",
       "iam:PassRole",
+      "iam:CreateInstanceProfile",
+      "iam:GetInstanceProfile",
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile",
+      "iam:DeleteInstanceProfile",
+      "eks:DescribeCluster",
       "pricing:GetProducts",
       "sqs:DeleteMessage",
       "sqs:GetQueueAttributes",
       "sqs:GetQueueUrl",
-      "sqs:ReceiveMessage",
-      "eks:DescribeCluster"
+      "sqs:ReceiveMessage"
     ]
     resources = ["*"]
   }
