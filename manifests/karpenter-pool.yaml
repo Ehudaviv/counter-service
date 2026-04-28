@@ -34,7 +34,7 @@ spec:
   role: "ehud-counter-service-karpenter-node"
   subnetSelectorTerms:
     - tags:
-        kubernetes.io/role/internal-elb: "1"
+        karpenter.sh/discovery: "ehud-counter-service"
   securityGroupSelectorTerms:
     - tags:
         aws:eks:cluster-name: "ehud-counter-service"

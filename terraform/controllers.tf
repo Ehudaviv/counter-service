@@ -131,6 +131,7 @@ data "aws_iam_policy_document" "karpenter_controller" {
       "iam:RemoveRoleFromInstanceProfile",
       "iam:DeleteInstanceProfile",
       "iam:TagInstanceProfile",
+      "iam:CreateServiceLinkedRole",
       "eks:DescribeCluster",
       "pricing:GetProducts",
       "sqs:DeleteMessage",
