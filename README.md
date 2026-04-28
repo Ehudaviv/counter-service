@@ -186,7 +186,7 @@ OpenTelemetry automatically instruments the Python backend to track requests to 
 2. Navigate to **CloudWatch** -> **X-Ray traces** -> **Service map**.
 3. View the visual node graph mapping the request paths and latency between the application and the RDS instance.
 
-## HA, Scaling, Persistence - Choices and Trade-offs
+## Choices and Trade-offs
 
 ### High Availability
 
