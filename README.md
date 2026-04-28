@@ -150,7 +150,7 @@ Once the cluster is provisioned and Argo CD has synchronized the applications, y
 ### 1. Counter Application (Frontend & API)
 The application is exposed via an AWS Application Load Balancer. Run the following command in your terminal to extract the public hostname:
 ```bash
-    `kubectl get ingress counter-ingress -n prod -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+    kubectl get ingress counter-ingress -n prod -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ```
 ### 2. Grafana (Metrics & Dashboards)
 Grafana is exposed via an AWS Load Balancer configured by the kube-prometheus-stack. Extract the URL using:
