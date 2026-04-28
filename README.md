@@ -1,4 +1,4 @@
-# Counter Service — Enterprise-Grade Kubernetes Deployment
+# Counter Service - Enterprise-Grade Kubernetes Deployment
 
 A highly resilient, fully observable counter microservice deployed on AWS EKS. This project demonstrates advanced DevOps principles, utilizing GitOps, dynamic Just-In-Time (JIT) node provisioning, event-driven autoscaling, and secure external secrets management.
 
@@ -23,6 +23,7 @@ User Request
 | **Infrastructure** | Terraform | Modular IaC defining VPC, EKS, NodeGroups, IAM OIDC, and Karpenter profiles. |
 | **CI Pipeline** | GitHub Actions | Builds and pushes multi-architecture (AMD64/ARM64) images to ECR. |
 | **Observability** | Prometheus, Grafana, OpenTelemetry | Full metric scraping, CloudWatch log aggregation, and X-Ray distributed tracing. |
+```
 
 ## Repository Structure
 
@@ -43,6 +44,8 @@ User Request
     ├── eks.tf               # Cluster control plane and IRSA OIDC configurations
     ├── network.tf           # VPC, subnets, and node discovery tagging
     └── nodegroup.tf         # Baseline managed node group for system controllers
+
+```
 
 ## Deployment Workflow
 
