@@ -12,6 +12,7 @@ User Request
         ├── Nginx Frontend (Static HTML + Reverse Proxy)
         └── Python Backend (Port 8080)
               └── AWS RDS PostgreSQL (Persistent State)
+```
 
 | Component | Technology Choice | Highlight |
 | :--- | :--- | :--- |
@@ -29,21 +30,28 @@ User Request
 
 ```text
 .
-├── backend/                 # Python backend service, Dockerfile, and requirements
-├── evidence/                # Screenshots of metrics, traces, scaling, and pipelines
-├── frontend/                # Nginx configuration, static UI assets, and Dockerfile
+├── README.md                      # Project documentation
+├── backend/                       # Python backend service, Dockerfile, and requirements
+├── docker-compose.yaml            # Local development orchestration
+├── evidence/                      # Screenshots of metrics, traces, scaling, and pipelines
+├── frontend/                      # Nginx configuration, static UI assets, and Dockerfile
 ├── helm/
-│   └── counter-service/     # Unified Helm chart (App, KEDA scaled objects, ESO stores)
-├── manifests/               # Declarative cluster definitions
-│   ├── argocd-app.yaml      # Argo CD Application configuration for GitOps sync
-│   └── karpenter-pool.yaml  # Karpenter provisioning rules (EC2NodeClass & NodePool)
+│   └── counter-service/           # Unified Helm chart (App, KEDA scaled objects, ESO stores)
+├── legacy-counter-service/        # Original un-containerized script
+├── manifests/                     # Declarative cluster definitions
+│   ├── argocd-app.yaml            # Argo CD Application configuration for GitOps sync
+│   └── karpenter-pool.yaml        # Karpenter provisioning rules (EC2NodeClass & NodePool)
 ├── scripts/
-│   └── bootstrap.sh         # Pre-flight environment setup and IAM spot-role injection
-└── terraform/               # Modular AWS Infrastructure as Code
-    ├── controllers.tf       # Helm releases for ALB, Karpenter, ESO, and Prometheus
-    ├── eks.tf               # Cluster control plane and IRSA OIDC configurations
-    ├── network.tf           # VPC, subnets, and node discovery tagging
-    └── nodegroup.tf         # Baseline managed node group for system controllers
+│   └── bootstrap.sh               # Pre-flight environment setup and IAM spot-role injection
+└── terraform/                     # Modular AWS Infrastructure as Code
+    ├── controllers.tf             # Helm releases for ALB, Karpenter, ESO, and Prometheus
+    ├── data.tf                    # AWS data source lookups
+    ├── eks.tf                     # Cluster control plane and IRSA OIDC configurations
+    ├── karpenter.tf               # Karpenter IAM roles and SQS queues
+    ├── network.tf                 # VPC, subnets, and node discovery tagging
+    ├── nodegroup.tf               # Baseline managed node group for system controllers
+    ├── providers.tf               # Terraform AWS and Kubernetes providers
+    └── variables.tf               # Infrastructure variables configuration
 
 ```
 
@@ -57,7 +65,7 @@ Infrastructure is deployed via GitHub Actions using OpenID Connect (OIDC) for pa
 
 ### 2. Continuous Integration (CI)
 On code changes to the `main` branch, the `.github/workflows/docker-build.yaml` pipeline triggers automatically:
-1.  Builds multi-architecture Docker images (`linux/amd64`, `linux/arm64`).
+1.  Builds multi-architecture Docker images (`linux/arm64`).
 2.  Pushes images to Amazon ECR.
 3.  Updates the Helm `values.yaml` file with the new image tags and commits the change.
 
