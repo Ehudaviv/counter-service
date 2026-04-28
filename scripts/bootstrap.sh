@@ -154,6 +154,9 @@ else
     echo "    -> App Build Role '$IAM_ROLE_APP' already configured."
 fi
 
+echo "    -> Verifying EC2 Spot Instance Service-Linked Role..."
+aws iam create-service-linked-role --aws-service-name spot.amazonaws.com 2>/dev/null || echo "    -> Spot role already exists."
+
 rm -f "$POLICY_TMP"
 
 echo ""
