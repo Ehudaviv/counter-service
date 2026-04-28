@@ -1,0 +1,23 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: counter-backend-pdb
+  labels:
+    app: counter-backend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: counter-backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: counter-frontend-pdb
+  labels:
+    app: counter-frontend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: counter-frontend
