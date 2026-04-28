@@ -130,6 +130,7 @@ data "aws_iam_policy_document" "karpenter_controller" {
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
       "iam:DeleteInstanceProfile",
+      "iam:TagInstanceProfile",
       "eks:DescribeCluster",
       "pricing:GetProducts",
       "sqs:DeleteMessage",
