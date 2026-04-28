@@ -10,7 +10,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write  # Changed to write to allow committing back to the repo
 
 env:
   AWS_REGION: "eu-west-2"
@@ -62,3 +62,16 @@ jobs:
           tags: |
             ${{ env.FRONTEND_ECR }}:latest
             ${{ env.FRONTEND_ECR }}:${{ env.sha_short }}
+
+      - name: Update Helm values and Commit
+        run: |
+          # Scoped update for backend and frontend tags
+          sed -i "/backend:/,/tag:/ s/tag: .*/tag: \"${{ env.sha_short }}\"/" helm/counter-service/values.yaml
+          sed -i "/frontend:/,/tag:/ s/tag: .*/tag: \"${{ env.sha_short }}\"/" helm/counter-service/values.yaml
+          
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git add helm/counter-service/values.yaml
+          git commit -m "chore: update image tags to ${{ env.sha_short }} [skip ci]"
+          git push
